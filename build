@@ -1,0 +1,56 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local usedParts = {}  -- Tablica do przechowywania juÅ¼ uÅ¼ytych czÄ™Å›ci
+
+-- Funkcja odpowiedzialna za teleportowanie do "DoorInnerTouch"
+local function teleportToDoorInnerTouch(doorInnerTouch)
+    wait(4)  -- Czeka 4 sekundy przed teleportacjÄ…
+    humanoidRootPart.CFrame = doorInnerTouch.CFrame
+    wait(0.5)  -- Czeka 0.5 sekundy przed przeniesieniem w gÃ³rÄ™
+    humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 30, 0)  -- Teleportuje 30 studiÃ³w w gÃ³rÄ™
+end
+
+-- Funkcja, ktÃ³ra szuka nowych czÄ™Å›ci "DoorInnerTouch"
+local function findNewPart()
+    while true do
+        local foundNewPart = false
+
+        -- Szukamy wszystkich czÄ™Å›ci o nazwie "DoorInnerTouch"
+        for _, doorInnerTouch in ipairs(workspace:GetDescendants()) do
+            if doorInnerTouch:IsA("BasePart") and doorInnerTouch.Name == "DoorInnerTouch" then
+                -- Sprawdzamy, czy czÄ™Å›Ä‡ byÅ‚a juÅ¼ uÅ¼yta
+                if not usedParts[doorInnerTouch] then
+                    -- Teleportujemy do nowej czÄ™Å›ci
+                    teleportToDoorInnerTouch(doorInnerTouch)
+                    usedParts[doorInnerTouch] = true  -- Dodajemy czÄ™Å›Ä‡ do listy uÅ¼ytych
+                    foundNewPart = true
+                    break
+                end
+            end
+        end
+
+        if not foundNewPart then
+            -- JeÅ›li wszystkie czÄ™Å›ci zostaÅ‚y uÅ¼yte, koÅ„czymy dziaÅ‚anie skryptu
+            if #usedParts == #workspace:GetDescendants() then
+                print("Wszystkie czÄ™Å›ci zostaÅ‚y uÅ¼yte. KoÅ„czÄ™ dziaÅ‚anie skryptu.")
+                break
+            end
+            -- JeÅ›li nie znaleziono nowej czÄ™Å›ci, czekamy 1 sekundÄ™
+            wait(1)
+        end
+    end
+end
+
+-- Funkcja odpowiedzialna za respawnowanie
+local function onRespawned()
+    character = player.Character or player.CharacterAdded:Wait()
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    findNewPart()  -- Kontynuuje teleportowanie po respawnie
+end
+
+-- Rozpoczyna nasÅ‚uchiwanie
+player.CharacterAdded:Connect(onRespawned)
+findNewPart()  -- Uruchamia skrypt
